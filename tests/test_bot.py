@@ -5,7 +5,6 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 from polybot.risk import RiskManager
-from polybot.schemas import TradeRequest
 from polybot.strategies.base import Signal
 from polybot.strategies.mean_revert import MeanRevert
 from polybot.strategies.momentum import Momentum

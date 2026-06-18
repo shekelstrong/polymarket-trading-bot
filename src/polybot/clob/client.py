@@ -11,19 +11,15 @@ from typing import Any, List, Optional
 
 from py_clob_client.client import ClobClient
 from py_clob_client.clob_types import (
-    ApiCreds,
     BalanceAllowanceParams,
-    BookParams,
-    MarketOrderArgs,
     OpenOrderParams,
-    OrderArgs,
     OrderType as SdkOrderType,
 )
 from py_order_utils.builders import OrderBuilder  # noqa: F401  (re-exported)
 from py_order_utils.signer import Signer  # noqa: F401
 
 from ..logging_utils import get_logger
-from ..schemas import OrderBook, OrderBookLevel, TickSize, TradeRequest, TradeResponse
+from ..schemas import OrderBook, OrderBookLevel, TradeRequest, TradeResponse
 from .orders import build_signed_order
 
 log = get_logger(__name__)

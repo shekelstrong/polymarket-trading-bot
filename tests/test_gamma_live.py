@@ -5,7 +5,6 @@ Run with: `pytest tests/test_gamma_live.py -m live --run-live`
 
 from __future__ import annotations
 
-import asyncio
 
 import pytest
 

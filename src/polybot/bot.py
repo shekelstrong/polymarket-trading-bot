@@ -3,15 +3,13 @@
 from __future__ import annotations
 
 import asyncio
-from typing import List
 
 from .clob.client import ClobWrapper
-from .config import Settings, get_settings
+from .config import get_settings
 from .logging_utils import get_logger
 from .markets.gamma import GammaClient
-from .persistence import init_db, log_order, make_engine, recent_orders
+from .persistence import init_db, log_order, make_engine
 from .risk import RiskManager
-from .schemas import Market
 from .strategies.base import Strategy
 from .strategies import news_edge
 

@@ -34,7 +34,7 @@ class Momentum(Strategy):
         if abs(change) < self.threshold:
             return []
         side = "BUY" if change > 0 else "SELL"
-        best_ask = float(book["asks"][0]["price"])
+        float(book["asks"][0]["price"])
         return [
             Signal(
                 market_id=int(market["id"]),
