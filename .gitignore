@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.local
+polybot.db
+polybot.db-journal
+.DS_Store
+.idea/
+.vscode/
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/

@@ -1,0 +1,30 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          # py-clob-client requires a few extra crypto deps on Linux
+          pip install "py-clob-client>=0.20" "py-order-utils>=0.1" web3 eth-account
+          pip install -r requirements.txt
+      - name: Lint
+        run: |
+          ruff check src tests
+      - name: Test (no live)
+        run: |
+          pytest -q -m "not live"
