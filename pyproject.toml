@@ -1,5 +1,3 @@
-"""pyproject for editable install."""
-
 [build-system]
 requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
@@ -19,6 +17,9 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 asyncio_mode = "auto"
+markers = [
+    "live: tests that hit the live Polymarket API",
+]
 
 [tool.ruff]
 line-length = 100

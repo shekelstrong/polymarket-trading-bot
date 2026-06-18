@@ -123,9 +123,10 @@ def create_app() -> FastAPI:
         except Exception as e:
             log.exception("telegram verify failed")
             raise HTTPException(status_code=400, detail=str(e))
+        raw_id = user.get("id")
         return TelegramAuthResponse(
             ok=True,
-            userId=int(user.get("id")) if user.get("id") else None,
+            userId=int(raw_id) if raw_id is not None else None,
             username=user.get("username"),
         )
 

@@ -2,12 +2,8 @@
 
 from __future__ import annotations
 
-import asyncio
 from types import SimpleNamespace
 
-import pytest
-
-from polybot.clob.orders import build_signed_order
 from polybot.risk import RiskManager
 from polybot.schemas import TradeRequest
 from polybot.strategies.base import Signal
@@ -21,6 +17,7 @@ def test_momentum_emits_signal_after_window_filled():
         asset_id="0xabc",
         asks=[SimpleNamespace(price="0.55", size="10")],
     )
+    out: list = []
     for p in [0.10, 0.10, 0.10, 0.10, 0.20]:
         out = s.evaluate(
             market={"id": 1, "question": "Q?", "negRisk": False},
@@ -35,6 +32,7 @@ def test_momentum_emits_signal_after_window_filled():
 def test_mean_revert_is_quiet_when_within_threshold():
     s = MeanRevert(window=10, z_threshold=2.0)
     book = SimpleNamespace(asset_id="0xabc", asks=[SimpleNamespace(price="0.5", size="1")])
+    out: list = []
     for p in [0.5] * 12:
         out = s.evaluate(
             market={"id": 1, "question": "Q?"},

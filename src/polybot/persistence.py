@@ -5,7 +5,7 @@ from __future__ import annotations
 import time
 from typing import List, Optional
 
-from sqlmodel import Field, Session, SQLModel, create_engine, select
+from sqlmodel import Field, Session, SQLModel, col, create_engine, select
 
 
 class Order(SQLModel, table=True):
@@ -46,5 +46,5 @@ def log_order(engine, **kwargs) -> None:
 
 def recent_orders(engine, limit: int = 50) -> List[Order]:
     with Session(engine) as s:
-        stmt = select(Order).order_by(Order.ts.desc()).limit(limit)
+        stmt = select(Order).order_by(col(Order.ts).desc()).limit(limit)
         return list(s.exec(stmt))

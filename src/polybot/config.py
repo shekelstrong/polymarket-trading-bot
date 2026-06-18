@@ -27,6 +27,7 @@ class Settings(BaseSettings):
     budget_usdc: float = Field(default=100.0, alias="polybot_budget_usdc")
     max_position_usdc: float = Field(default=5.0, alias="polybot_max_position_usdc")
     max_daily_loss_usdc: float = Field(default=25.0, alias="polybot_max_daily_loss_usdc")
+    max_daily_loss_usd: float = 25.0  # back-compat alias used by bot.py
     log_level: str = Field(default="INFO", alias="polybot_log_level")
     db_url: str = Field(default="sqlite:///./polybot.db", alias="polybot_db_url")
 
