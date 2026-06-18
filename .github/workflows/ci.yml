@@ -19,9 +19,11 @@ jobs:
       - name: Install
         run: |
           python -m pip install --upgrade pip
-          # py-clob-client requires a few extra crypto deps on Linux
+          # py-clob-client + order-utils require crypto deps on Linux
           pip install "py-clob-client>=0.20" "py-order-utils>=0.1" web3 eth-account
           pip install -r requirements.txt
+          # Install the package itself so `import polybot` works in tests
+          pip install -e .
       - name: Lint
         run: |
           ruff check src tests
