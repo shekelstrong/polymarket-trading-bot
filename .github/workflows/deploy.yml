@@ -1,0 +1,46 @@
+name: Deploy to VPS
+
+# Triggered on every push to main
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          command_timeout: 10m
+          script: |
+            set -euo pipefail
+            REPO_DIR="${{ secrets.VPS_DEPLOY_DIR }/polymarket-trading-bot""
+            cd "$REPO_DIR"
+            # Pull latest
+            git pull --rebase --autostash origin main
+            # Stop current container (if any)
+            docker compose down --remove-orphans || true
+            # Build & start fresh
+            docker compose up -d --build
+            # Cleanup dangling images
+            docker image prune -f
+            # Health check
+            sleep 5
+            docker compose ps
+            echo "✅ Deploy complete at $(date -u)"
+
+      - name: Notify on success
+        if: success()
+        run: |
+          echo "Deploy OK"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Deploy FAILED — check VPS manually"

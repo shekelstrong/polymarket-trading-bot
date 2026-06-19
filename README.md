@@ -1,30 +1,23 @@
-# polymarket-trading-bot
+# Polymarket Trading Bot
 
-Autonomous trading bot for [Polymarket](https://polymarket.com) prediction markets.
+Autonomous trading bot + FastAPI backend for the [Polybet Mini App](../polymarket-miniapp).
 
-Two ways to run it:
+- **Stack:** Python 3.11+ + `py-clob-client` + `py-order-utils` + FastAPI + SQLModel
+- **Chain:** Polygon mainnet (137)
+- **License:** MIT
 
-1. **Bot mode** (default): one strategy runs against one wallet. Use this to put your own money to work.
-2. **Backend mode** (`--serve`): exposes a small FastAPI that the [Polybet Mini App](../polymarket-miniapp) hits to place trades on behalf of authenticated Telegram users. This is the production wiring.
+## Two modes
 
-## What it does
+| Mode | Command | What |
+|---|---|---|
+| **Bot** | `python -m polybot --strategy momentum` | Scans markets, runs strategy, places real orders |
+| **Serve** | `python -m polybot --serve --port 8080` | FastAPI for the Mini App (multi-user) |
 
-- Streams live markets from `gamma-api.polymarket.com`.
-- Maintains an in-memory order-book view per token via `clob.polymarket.com`.
-- Runs a pluggable strategy (`momentum`, `mean-revert`, `news-edge`, or a custom subclass).
-- Submits and cancels orders via `py-clob-client` (L2 authenticated, L3 if you have a funder).
-- Optional RAG: feeds recent news (NewsAPI / RSS / Google News) into a vector store, and asks an LLM whether the consensus shifts a market.
-- Persistent SQLite log of all orders and PnL.
+## Strategies
 
-## Stack
-
-- Python 3.11+
-- `py-clob-client`, `py-order-utils` (Polygon mainnet, chain id 137)
-- `httpx` for the Gamma API
-- `langchain` + `chromadb` for the RAG strategy (optional)
-- `fastapi` + `uvicorn` for the backend mode
-- `python-dotenv` for config
-- `typer` for the CLI
+- **`momentum`** — if price moved >3% over last 20 prints, trade in direction
+- **`mean-revert`** — fade moves >2σ from rolling mean
+- **`news-edge`** — LLM + Google News RSS → ask GPT-4o-mini "is this market mispriced?" → trade
 
 ## Install
 
@@ -32,50 +25,53 @@ Two ways to run it:
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-# fill in your POLYGON_WALLET_PRIVATE_KEY
+# fill POLYGON_WALLET_PRIVATE_KEY
 ```
 
-## Run as bot
+## Run locally (paper trade)
 
 ```bash
-python -m polybot --strategy momentum --budget 100
+# Switch to Amoy testnet
+export POLYBOT_CHAIN_ID=80002
+# Run bot
+python -m polybot --strategy mean-revert
 ```
 
-You will see a live log of markets scanned, signals, orders placed, and PnL updates.
+## Deploy via CI/CD
 
-## Run as backend (for the Mini App)
+Already wired. Push to `main` → GitHub Actions → SSH to VPS 108.165.164.85 → `docker compose up -d --build`.
+
+## Endpoints (when `--serve`)
+
+| Method | Path | What |
+|---|---|---|
+| `GET` | `/healthz` | Liveness |
+| `GET` | `/markets/trending?limit=25` | Top markets from Gamma |
+| `GET` | `/markets/orderbook/{token_id}` | CLOB order book |
+| `POST` | `/trades` | Sign + post order (requires wallet key) |
+| `POST` | `/auth/telegram` | Verify Telegram WebApp initData |
+
+## Polygon addresses
+
+| Contract | Address |
+|---|---|
+| CTF Exchange | `0x4bFb41d5B3570DeFd03C39a9A4D8dE6Bd8B8982E` |
+| Neg-Risk CTF Exchange | `0xC5d563A36AE78145C45a50134d48A1215220f80a` |
+| USDC.e (Polygon) | `0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174` |
+| CTF Token | `0x4D97DCd97eC945f40cF65F87097ACe5EA0476045` |
+
+## Tests
 
 ```bash
-python -m polybot --serve --host 0.0.0.0 --port 8080
+pip install -e ".[dev]"
+pytest -q
 ```
-
-Endpoints:
-
-```
-GET  /healthz
-GET  /markets/trending?limit=25
-GET  /markets/orderbook/{token_id}
-POST /trades              (JSON: see src/polybot/schemas.py)
-POST /auth/telegram       (validates Telegram WebApp initData)
-```
-
-## Strategies
-
-- `momentum`: if the last N trades moved the price up > X% on > Y volume, buy YES.
-- `mean-revert`: if the price has drifted > Z standard deviations from the 1h VWAP, fade it.
-- `news-edge`: when a new article clusters near a market's question, ask an LLM "is this market mispriced?" and trade if so.
-
-Implement your own by subclassing `polybot.strategies.base.Strategy` and returning a list of `Signal` objects.
-
-## Wallet
-
-You need a Polygon wallet funded with USDC.e (bridged USDC). Approve the CLOB exchange contract to spend your USDC (the bot does this on first run, see `polybot.wallet.approvals`).
 
 ## Safety
 
-- This bot trades real money.
-- Default `--max-position` is $5, default `--max-daily-loss` is $25.
-- Always start with a paper-trading wallet on Polygon Amoy testnet first (`POLYBOT_CHAIN_ID=80002`).
+- **`max_position_usd`** cap (default $5) — caps per-trade notional
+- **`max_daily_loss_usd`** cap (default $25) — bot stops after daily loss limit
+- **Read-only by default** — if `POLYGON_WALLET_PRIVATE_KEY` is empty, `/trades` returns 503
 
 ## License
 

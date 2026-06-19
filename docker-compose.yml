@@ -1,0 +1,31 @@
+name: polymarket-trading-bot
+
+services:
+  polybot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: polybot
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./polybot.db:/app/polybot.db
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: polybot-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:
